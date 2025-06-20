@@ -1,6 +1,6 @@
- // MapView.jsx
+// MapView.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import axios from 'axios';
@@ -79,7 +79,6 @@ const MapView = () => {
           </div>
         ))}
       </div>
-
       {/* Map */}
       <div className="w-3/4 h-screen">
         <MapContainer
@@ -92,7 +91,6 @@ const MapView = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
-
           <MarkerClusterGroup>
             {filteredProperties.map((property) => (
               <Marker
@@ -104,7 +102,7 @@ const MapView = () => {
                 <Popup>
                   <strong>{property.name}</strong><br />
                   ₹ {property.price.toLocaleString()}<br />
-                  <img src={property.image} alt="" width="100" />
+                  <img src={property.image} alt={property.name ? `Image of ${property.name}` : 'Property image'} width="100" />
                 </Popup>
               </Marker>
             ))}

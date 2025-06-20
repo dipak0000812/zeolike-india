@@ -17,13 +17,12 @@ const EditListing = () => {
     baths: '',
     sqft: '',
     features: [],
-    propertyType: 'sale', // default to sale
+    propertyType: 'sale',
     phone: '',
     email: '',
-    imageURLs: [], // For existing image URLs
-    newImages: [], // For new image file uploads
+    imageURLs: [],
+    newImages: [],
   });
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submissionStatus, setSubmissionStatus] = useState(null);
@@ -33,7 +32,6 @@ const EditListing = () => {
       try {
         const data = await listingsAPI.getById(id);
         if (user && data.owner !== user.id) {
-          // Optionally redirect or show error if user is not the owner
           setError('You are not authorized to edit this listing.');
           setLoading(false);
           return;
@@ -51,7 +49,7 @@ const EditListing = () => {
           phone: data.phone || '',
           email: data.email || '',
           imageURLs: data.imageURLs || [],
-          newImages: [], // Clear new images on load
+          newImages: [],
         });
       } catch (err) {
         console.error('Error fetching listing:', err);
@@ -66,14 +64,14 @@ const EditListing = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         features: checked
           ? [...prev.features, value]
-          : prev.features.filter(feature => feature !== value),
+          : prev.features.filter((feature) => feature !== value),
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -81,16 +79,16 @@ const EditListing = () => {
   };
 
   const handleImageChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       newImages: Array.from(e.target.files),
     }));
   };
 
   const handleRemoveExistingImage = (urlToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      imageURLs: prev.imageURLs.filter(url => url !== urlToRemove),
+      imageURLs: prev.imageURLs.filter((url) => url !== urlToRemove),
     }));
   };
 
@@ -99,26 +97,21 @@ const EditListing = () => {
     setLoading(true);
     setError(null);
     setSubmissionStatus(null);
-
     const dataToSend = new FormData();
-    for (const key in formData) {
+    Object.entries(formData).forEach(([key, value]) => {
       if (key === 'features') {
-        formData[key].forEach(feature => dataToSend.append('features', feature));
+        value.forEach((feature) => dataToSend.append('features', feature));
       } else if (key === 'newImages') {
-        formData[key].forEach(file => dataToSend.append('newImages', file));
-      } else if (key !== 'imageURLs') { // Don't send existing imageURLs in FormData directly
-        dataToSend.append(key, formData[key]);
+        value.forEach((file) => dataToSend.append('newImages', file));
+      } else if (key !== 'imageURLs') {
+        dataToSend.append(key, value);
       }
-    }
-    // Send existing imageURLs separately as a JSON string, or handle on backend
-    // For simplicity, we'll let the backend process the array directly if sent as JSON
-    // Or pass them as a separate field and backend merges
+    });
     dataToSend.append('imageURLsJson', JSON.stringify(formData.imageURLs));
-
     try {
       const updatedListing = await listingsAPI.update(id, dataToSend);
       setSubmissionStatus('Listing updated successfully!');
-      navigate(`/property/${updatedListing._id}`); // Redirect to updated property page
+      navigate(`/property/${updatedListing._id}`);
     } catch (err) {
       console.error('Error updating listing:', err);
       setError(err.response?.data?.message || 'Failed to update listing. Please try again.');
@@ -128,32 +121,43 @@ const EditListing = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
-
   if (error && error !== 'You are not authorized to edit this listing.') {
-    return <div className="min-h-screen flex items-center justify-center text-red-600 font-bold text-xl">Error: {error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600 font-bold text-xl">
+        Error: {error}
+      </div>
+    );
   }
-
   if (error === 'You are not authorized to edit this listing.') {
-    return <div className="min-h-screen flex items-center justify-center text-red-600 font-bold text-xl">{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600 font-bold text-xl">
+        {error}
+      </div>
+    );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Property Listing</h1>
-
         {submissionStatus && (
-          <div className={`p-4 mb-6 rounded-md ${submissionStatus.includes('successfully') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <div
+            className={`p-4 mb-6 rounded-md ${submissionStatus.includes('successfully') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}
+          >
             {submissionStatus}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">Property Title</label>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Property Title
+              </label>
               <input
                 type="text"
                 name="title"
@@ -165,7 +169,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price (INR)</label>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                Price (INR)
+              </label>
               <input
                 type="number"
                 name="price"
@@ -177,7 +183,9 @@ const EditListing = () => {
               />
             </div>
             <div className="md:col-span-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
               <textarea
                 name="description"
                 id="description"
@@ -189,7 +197,9 @@ const EditListing = () => {
               ></textarea>
             </div>
             <div className="md:col-span-2">
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location (e.g., City, State)</label>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                Location (e.g., City, State)
+              </label>
               <input
                 type="text"
                 name="location"
@@ -201,7 +211,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="beds" className="block text-sm font-medium text-gray-700">Number of Beds</label>
+              <label htmlFor="beds" className="block text-sm font-medium text-gray-700">
+                Number of Beds
+              </label>
               <input
                 type="number"
                 name="beds"
@@ -213,7 +225,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="baths" className="block text-sm font-medium text-gray-700">Number of Baths</label>
+              <label htmlFor="baths" className="block text-sm font-medium text-gray-700">
+                Number of Baths
+              </label>
               <input
                 type="number"
                 name="baths"
@@ -225,7 +239,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="sqft" className="block text-sm font-medium text-gray-700">Area (sq.ft)</label>
+              <label htmlFor="sqft" className="block text-sm font-medium text-gray-700">
+                Area (sq.ft)
+              </label>
               <input
                 type="number"
                 name="sqft"
@@ -237,7 +253,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700">Property Type</label>
+              <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700">
+                Property Type
+              </label>
               <select
                 name="propertyType"
                 id="propertyType"
@@ -250,7 +268,9 @@ const EditListing = () => {
               </select>
             </div>
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Contact Phone</label>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Contact Phone
+              </label>
               <input
                 type="tel"
                 name="phone"
@@ -263,7 +283,9 @@ const EditListing = () => {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Contact Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Contact Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -274,12 +296,22 @@ const EditListing = () => {
               />
             </div>
           </div>
-
           {/* Features Checkboxes */}
           <div className="mt-6">
             <span className="text-base font-medium text-gray-900">Features</span>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {[ 'Swimming Pool', 'Gym', 'Balcony', 'Garden', 'Parking', 'Security', 'Furnished', 'Pet Friendly', 'Clubhouse', 'Power Backup' ].map(feature => (
+              {[
+                'Swimming Pool',
+                'Gym',
+                'Balcony',
+                'Garden',
+                'Parking',
+                'Security',
+                'Furnished',
+                'Pet Friendly',
+                'Clubhouse',
+                'Power Backup',
+              ].map((feature) => (
                 <div key={feature} className="flex items-center">
                   <input
                     id={feature}
@@ -297,34 +329,36 @@ const EditListing = () => {
               ))}
             </div>
           </div>
-
           {/* Existing Images Display and Removal */}
           {formData.imageURLs.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Existing Images</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {formData.imageURLs.map((url) => (
-                  <div key={url} className="relative group rounded-lg overflow-hidden shadow-md">
-                    <img src={url} alt="Listing" className="w-full h-32 object-cover" />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Existing Images</label>
+              <div className="flex flex-wrap gap-4">
+                {formData.imageURLs.map((url, idx) => (
+                  <div key={url} className="relative w-32 h-32">
+                    <img
+                      src={url}
+                      alt={`Listing image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded"
+                    />
                     <button
                       type="button"
                       onClick={() => handleRemoveExistingImage(url)}
-                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Remove image"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                      aria-label="Remove image"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      &times;
                     </button>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
           {/* New Image Upload */}
           <div className="mt-6">
-            <label htmlFor="newImages" className="block text-sm font-medium text-gray-700">Upload New Images</label>
+            <label htmlFor="newImages" className="block text-sm font-medium text-gray-700">
+              Upload New Images
+            </label>
             <input
               type="file"
               name="newImages"
@@ -335,7 +369,6 @@ const EditListing = () => {
             />
             <p className="mt-2 text-xs text-gray-500">Maximum 5 files. JPG, PNG, GIF, WEBP only.</p>
           </div>
-
           <button
             type="submit"
             disabled={loading}

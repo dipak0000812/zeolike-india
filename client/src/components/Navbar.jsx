@@ -21,11 +21,7 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
-    if (!isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = !isOpen ? 'hidden' : 'unset';
   };
 
   const closeMenu = () => {
@@ -46,7 +42,7 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-container">
         <Link to="/" className="logo" onClick={closeMenu}>
-          <img src="/logo.png" alt="Zeolike India" />
+          <img src="/logo.png" alt="Zeolike India logo, homepage" />
         </Link>
 
         <div className={`nav-links ${isOpen ? 'active' : ''}`}>
@@ -76,7 +72,7 @@ const Navbar = () => {
               <Link to="/dashboard" className="action-btn signin" onClick={closeMenu}>
                 <FaTachometerAlt /> Dashboard
               </Link>
-              <button onClick={handleLogout} className="action-btn signin">
+              <button onClick={handleLogout} className="action-btn signin" aria-label="Sign Out">
                 <FaSignOutAlt /> Sign Out
               </button>
             </>
@@ -87,7 +83,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <button className="mobile-menu-btn" onClick={toggleMenu}>
+        <button className="mobile-menu-btn" onClick={toggleMenu} aria-label={isOpen ? 'Close menu' : 'Open menu'}>
           {isOpen ? <FaTimes /> : <FaBars />}
         </button>
       </div>

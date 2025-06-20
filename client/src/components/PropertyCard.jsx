@@ -93,13 +93,14 @@ const PropertyCard = ({ property }) => {
       <div className="property-image-container">
         <img 
           src={displayImage} 
-          alt={property.title}
+          alt={property.title ? property.title : 'Property image'}
           className="property-image"
         />
         <button 
           className={`favorite-btn ${isFavorite ? 'active' : ''}`}
           onClick={toggleFavorite}
           disabled={loadingFavorite} // Disable button while loading favorite status
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           {isFavorite ? <FaHeart /> : <FaRegHeart />}
         </button>

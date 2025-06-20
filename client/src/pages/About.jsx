@@ -102,7 +102,7 @@ const About = () => {
               <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200">
                 <img
                   src="/images/team/dipak.jpg"
-                  alt="Dipak Dhangar"
+                  alt="Portrait of Dipak Dhangar, Founder & CEO"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -118,7 +118,7 @@ const About = () => {
               <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200">
                 <img
                   src="/images/team/yash.jpg"
-                  alt="Yash Mali"
+                  alt="Portrait of Yash Mali, Head of Operations"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -134,7 +134,7 @@ const About = () => {
               <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200">
                 <img
                   src="/images/team/bhavesh.jpg"
-                  alt="Bhavesh Jadhav"
+                  alt="Portrait of Bhavesh Jadhav, Lead Developer"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
