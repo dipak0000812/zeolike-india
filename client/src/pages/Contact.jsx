@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import MapEmbed from '../components/MapEmbed';
 
 const Contact = () => {

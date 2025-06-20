@@ -12,8 +12,6 @@ const Dashboard = () => {
   const [listingsError, setListingsError] = useState(null);
 
   const [savedProperties, setSavedProperties] = useState([]); // State for user's saved listings
-  const [savedLoading, setSavedLoading] = useState(true);
-  const [savedError, setSavedError] = useState(null);
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -33,18 +31,13 @@ const Dashboard = () => {
       fetchUserListings();
 
       const fetchSavedProperties = async () => {
-        setSavedLoading(true);
         try {
           const data = await favoritesAPI.getFavoritesByUserId(user.id);
           // favoritesAPI returns an array of { _id, user, listing: {...} }
           // We only need the listing object to pass to PropertyCard
           setSavedProperties(data.map(fav => fav.listing));
-          setSavedError(null);
         } catch (err) {
           console.error('Error fetching saved properties:', err);
-          setSavedError('Failed to fetch saved properties.');
-        } finally {
-          setSavedLoading(false);
         }
       };
       fetchSavedProperties();
@@ -53,7 +46,6 @@ const Dashboard = () => {
       setUserListings([]);
       setListingsLoading(false);
       setSavedProperties([]);
-      setSavedLoading(false);
     }
   }, [user, authLoading]);
 

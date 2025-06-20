@@ -338,7 +338,7 @@ const EditListing = () => {
                   <div key={url} className="relative w-32 h-32">
                     <img
                       src={url}
-                      alt={`Listing image ${idx + 1}`}
+                      alt={formData.title ? formData.title : `Listing preview`}
                       className="w-full h-32 object-cover rounded"
                     />
                     <button
