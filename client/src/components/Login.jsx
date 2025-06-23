@@ -1,94 +1,175 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../firebase";
 
 const Login = () => {
+  const [isPhoneLogin, setIsPhoneLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       const data = await authAPI.login({ email, password });
-      console.log('Login successful:', data);
-      // Redirect to dashboard or home page after successful login
-      navigate('/dashboard'); 
+      console.log('Email login successful:', data);
+      navigate('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Failed to log in. Please check your credentials.');
+      setError(err.response?.data?.message || 'Invalid credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
+        size: "invisible",
+        callback: () => handleSendOtp(),
+      }, auth);
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (!phone.match(/^[0-9]{10}$/)) {
+      setError("Enter a valid 10-digit phone number.");
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setupRecaptcha();
+    const appVerifier = window.recaptchaVerifier;
+
+    try {
+      const result = await signInWithPhoneNumber(auth, `+91${phone}`, appVerifier);
+      setConfirmationResult(result);
+      alert("OTP sent!");
+    } catch (err) {
+      setError("Failed to send OTP. Try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await confirmationResult.confirm(otp);
+      console.log('Phone login successful:', result.user);
+      navigate('/dashboard');
+    } catch (err) {
+      setError("Invalid OTP. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Login to Zeolike</h2>
+          <button
+            onClick={() => setIsPhoneLogin(!isPhoneLogin)}
+            className="text-sm text-indigo-600 hover:underline mt-2"
+          >
+            {isPhoneLogin ? "Use Email Login" : "Use Phone Login"}
+          </button>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email address</label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                Don't have an account? Register
-              </Link>
-            </div>
-          </div>
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          <div>
+        {!isPhoneLogin ? (
+          // Email login form
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full border px-3 py-2 rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border px-3 py-2 rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
               disabled={loading}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? "Logging in..." : "Sign In"}
             </button>
-          </div>
-        </form>
+          </form>
+        ) : (
+          // Phone login form
+          <form onSubmit={handleSendOtp} className="space-y-4">
+            <input
+              type="tel"
+              placeholder="Enter Phone Number"
+              className="w-full border px-3 py-2 rounded"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+            />
+            <div id="recaptcha-container"></div>
+            {!confirmationResult ? (
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+                disabled={loading}
+              >
+                {loading ? "Sending OTP..." : "Send OTP"}
+              </button>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  className="w-full border px-3 py-2 rounded"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                  disabled={loading}
+                >
+                  {loading ? "Verifying..." : "Verify OTP"}
+                </button>
+              </>
+            )}
+          </form>
+        )}
+
+        <div className="text-sm text-center mt-4">
+          <Link to="/register" className="text-indigo-600 hover:underline">
+            Don't have an account? Register
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Login; 
+export default Login;
